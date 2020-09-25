@@ -7,7 +7,6 @@ module Caching.CachedMap
   ) where
 
 import Prelude
-
 import Control.Monad.Rec.Class (forever)
 import Data.Array as A
 import Data.DateTime.Instant (Instant, instant, unInstant)
