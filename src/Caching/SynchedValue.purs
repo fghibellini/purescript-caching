@@ -3,22 +3,26 @@ module Caching.SynchedValue
   , new
   , awaitNew
   , read
+  , isEmpty
   ) where
 
 -- | TODO
 -- | Stats about @SynchedValue@s should be exposed on the EKG page.
+
 import Prelude
+
 import Control.Monad.Rec.Class (forever)
 import Data.DateTime (DateTime)
+import Data.Maybe (isNothing)
 import Data.Time.Duration (Milliseconds(..), Minutes(..))
 import Effect (Effect)
-import Effect.AVar (AVar)
+import Effect.AVar (AVar, tryRead)
 import Effect.AVar as EffectAVar
 import Effect.Aff (Aff, delay, launchAff_)
 import Effect.Aff.AVar as AVar
-import Effect.Class (liftEffect)
-import Effect.Now (nowDateTime)
 import Effect.Aff.Retry (capDelay, fullJitterBackoff, recovering)
+import Effect.Class (class MonadEffect, liftEffect)
+import Effect.Now (nowDateTime)
 
 data Slot a
   = Slot
@@ -65,3 +69,7 @@ read (SynchedValue { avar }) = do
   Slot { value } <- AVar.read avar
   -- TODO check expiration time
   pure value
+
+-- | Check if a SynchedValue is filled
+isEmpty ∷ ∀  m a. MonadEffect m => SynchedValue a -> m Boolean
+isEmpty (SynchedValue { avar }) = liftEffect $ isNothing <$> tryRead avar
