@@ -72,6 +72,6 @@ read (SynchedValue { avar }) = do
 
 -- | Check if a SynchedValue is initialized
 -- |
--- | Try reads synchronously from a SychedValue. If it is empty returns False.
+-- | Try reads synchronously from a SynchedValue. If it is empty returns False.
 isInitialized ∷ ∀  m a. MonadEffect m => SynchedValue a -> m Boolean
 isInitialized (SynchedValue { avar }) = liftEffect $ isJust <$> tryRead avar
