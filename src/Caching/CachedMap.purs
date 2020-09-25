@@ -4,19 +4,17 @@ module Caching.CachedMap
   , new
   , read
   , size
-  , isInitialized
   ) where
 
 import Prelude
 
 import Control.Monad.Rec.Class (forever)
-import Data.Array (all)
 import Data.Array as A
 import Data.DateTime.Instant (Instant, instant, unInstant)
 import Data.Either (Either(..))
 import Data.Map (Map, fromFoldable, toUnfoldable)
 import Data.Map as Map
-import Data.Maybe (Maybe(..), fromJust, isJust)
+import Data.Maybe (Maybe(..), fromJust)
 import Data.Time.Duration (Milliseconds)
 import Data.Traversable (for, traverse)
 import Data.Tuple (Tuple(..))
@@ -25,7 +23,7 @@ import Effect.AVar (AVar)
 import Effect.AVar as AVar
 import Effect.Aff (Aff, delay, forkAff, launchAff_, throwError, try)
 import Effect.Aff.AVar as AVarAff
-import Effect.Class (class MonadEffect, liftEffect)
+import Effect.Class (liftEffect)
 import Effect.Exception (error, Error)
 import Effect.Now as EffectNow
 import Effect.Ref (Ref)
@@ -148,16 +146,3 @@ size (CachedMap { ref }) = Map.size <$> Ref.read ref
 
 instantAddMs ∷ Instant -> Milliseconds -> Instant
 instantAddMs x ms = unsafePartial $ fromJust $ instant (unInstant x <> ms)
-
--- | Check if CachedMap has been initialized
--- |
--- | Returns True only when underlying Map is not empty, and all avars are filled
-isInitialized ∷ ∀  m k a. MonadEffect m => CachedMap k a -> m Boolean
-isInitialized (CachedMap { ref }) = liftEffect do
-  cache <- Ref.read ref
-  let mapNotEmpty = (not <<< Map.isEmpty) cache
-      allAvars = _.value <$> Map.values cache
-      allAvarsFilled = do
-        results <- traverse AVar.tryRead allAvars
-        pure $ all isJust results
-  (&&) <$> pure mapNotEmpty <*> allAvarsFilled

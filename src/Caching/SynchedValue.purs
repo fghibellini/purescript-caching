@@ -3,7 +3,7 @@ module Caching.SynchedValue
   , new
   , awaitNew
   , read
-  , isInitialized
+  , isEmpty
   ) where
 
 -- | TODO
@@ -13,7 +13,7 @@ import Prelude
 
 import Control.Monad.Rec.Class (forever)
 import Data.DateTime (DateTime)
-import Data.Maybe (isJust)
+import Data.Maybe (isNothing)
 import Data.Time.Duration (Milliseconds(..), Minutes(..))
 import Effect (Effect)
 import Effect.AVar (AVar, tryRead)
@@ -70,8 +70,6 @@ read (SynchedValue { avar }) = do
   -- TODO check expiration time
   pure value
 
--- | Check if a SynchedValue is initialized
--- |
--- | Try reads synchronously from a SynchedValue. If it is empty returns False.
-isInitialized ∷ ∀  m a. MonadEffect m => SynchedValue a -> m Boolean
-isInitialized (SynchedValue { avar }) = liftEffect $ isJust <$> tryRead avar
+-- | Check if a SynchedValue is filled
+isEmpty ∷ ∀  m a. MonadEffect m => SynchedValue a -> m Boolean
+isEmpty (SynchedValue { avar }) = liftEffect $ isNothing <$> tryRead avar
